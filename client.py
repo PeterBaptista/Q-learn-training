@@ -4,7 +4,7 @@ import random
 import os
 
 # Constants
-PORT = int(input("Porta padrão: 2037\nDigite número da porta: "))
+PORT = 2037
 
 
 
@@ -30,8 +30,8 @@ def binary_to_state_index(binary_state):
     return platform * NUM_DIRECTIONS + direction
 
 # Initialize Q-table (96 states × 3 actions)
-if os.path.exists(f'resultado-{PORT}.txt'):
-    q_table = np.loadtxt(f'resultado-{PORT}.txt')
+if os.path.exists(f'resultado.txt'):
+    q_table = np.loadtxt(f'resultado.txt')
     print("Q-table carregada com sucesso!")
 else:
     q_table = np.zeros((NUM_STATES, NUM_ACTIONS))
@@ -50,12 +50,14 @@ PLATFORM_REACHED = 0
 
 # Training loop
 count = 0
+state=-1
+next_state_idx = -1
 try:
     while count < Episodes_Cycle:
         count += 1
         EPSILON = 0.1
         for episode in range(EPISODES):
-            print(f"\nEpisode {episode + 1} cycle {count}")
+            print(f"\nEpisode {episode + 1 + ((count-1) * EPISODES)} cycle {count}")
 
             LEARNING_RATE = max(0.01, 0.1 * (0.99 ** episode))
             EPSILON = max(0.01, EPSILON - (0.1 / EPISODES))
@@ -79,9 +81,14 @@ try:
                     action_idx = np.argmax(q_table[state_idx])
 
                 # Take action
+                # while next_state_idx == state_idx:
                 next_state, reward = cn.get_state_reward(s, ACTIONS[action_idx])
                 next_state_idx = binary_to_state_index(next_state)
+                while next_state_idx == state_idx:
+                    next_state, reward = cn.get_state_reward(s, ACTIONS[action_idx])
+                    next_state_idx = binary_to_state_index(next_state)
 
+                
                 # Q-learning update
                 old_value = q_table[state_idx, action_idx]
                 next_max = np.max(q_table[next_state_idx])
@@ -104,6 +111,7 @@ try:
                     print("Failed - resetting episode")
                     done = True
 
+            
             print(f"Episode {episode + 1} finished after {steps} steps. Total reward: {total_reward}")
             episode += 1
             print(f"Goal reached count: {GOAL_REACHED_COUNT}")
@@ -117,12 +125,17 @@ try:
             elif(episode % 100 == 0):
                 print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}")
 
+            while reward != -100:
+
+                next_state, reward = cn.get_state_reward(s, 'jump')
+                print(f"State: {next_state}, Reward: {reward}")
+                state = next_state
 except KeyboardInterrupt:
     print("\nTraining interrupted by user")
 finally:
     # Save Q-table
     print("Saving Q-table to resultado.txt")
-    np.savetxt(f'resultado-{PORT}.txt', q_table, fmt='%.6f')
+    np.savetxt(f'resultado.txt', q_table, fmt='%.6f')
     print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED}")
     print(f"Goal reached count: {GOAL_REACHED_COUNT}")
     print(f"Platform reached: {PLATFORM_REACHED}")
