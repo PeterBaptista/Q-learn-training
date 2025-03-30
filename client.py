@@ -19,8 +19,8 @@ NUM_ACTIONS = len(ACTIONS)
 DISCOUNT_FACTOR = 0.9222
 EPSILON = 0.1
 LEARNING_RATE = 0.1
-EPISODES = 300
-Episodes_Cycle = 1000
+EPISODES = 200
+EPISODES_CYCLE = 100000
 MAX_STEPS = 20
 
 def binary_to_state_index(binary_state):
@@ -53,9 +53,12 @@ count = 0
 state=-1
 next_state_idx = -1
 try:
-    while count < Episodes_Cycle:
+    while count < EPISODES_CYCLE:
         count += 1
         EPSILON = 0.1
+        if count % 2 == 0:
+            print("Saving Q-table to resultado.txt")
+            np.savetxt(f'resultado.txt', q_table, fmt='%.6f')
         for episode in range(EPISODES):
             print(f"\nEpisode {episode + 1 + ((count-1) * EPISODES)} cycle {count}")
 
@@ -115,8 +118,8 @@ try:
             print(f"Episode {episode + 1} finished after {steps} steps. Total reward: {total_reward}")
             episode += 1
             print(f"Goal reached count: {GOAL_REACHED_COUNT}")
-            if (reward >= BEST_REWARD_REACHED) or episode == 1:
-                BEST_EPISODE = episode + EPISODES * count
+            if (reward > BEST_REWARD_REACHED) or episode == 1:
+                BEST_EPISODE = episode + (EPISODES * (count-1))
                 BEST_REWARD = total_reward 
                 BEST_STEPS = steps
                 BEST_REWARD_REACHED =reward
@@ -128,7 +131,7 @@ try:
             while reward != -100:
 
                 next_state, reward = cn.get_state_reward(s, 'jump')
-                print(f"State: {next_state}, Reward: {reward}")
+                
                 state = next_state
 except KeyboardInterrupt:
     print("\nTraining interrupted by user")
