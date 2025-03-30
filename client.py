@@ -59,7 +59,7 @@ try:
 
             LEARNING_RATE = max(0.01, 0.1 * (0.99 ** episode))
             EPSILON = max(0.01, EPSILON - (0.1 / EPISODES))
-            print(f"Learning rate: {LEARNING_RATE}")
+            print(f"Learning rate: {LEARNING_RATE} e Epsilon: {EPSILON}")
 
             # Get initial state
             state, reward = cn.get_state_reward(s, 'jump')  # Initial action
@@ -107,9 +107,9 @@ try:
             print(f"Episode {episode + 1} finished after {steps} steps. Total reward: {total_reward}")
             episode += 1
             print(f"Goal reached count: {GOAL_REACHED_COUNT}")
-            if total_reward + ((MAX_STEPS- steps) *-14) > BEST_REWARD or episode == 1:
+            if (reward >= BEST_REWARD_REACHED) or episode == 1:
                 BEST_EPISODE = episode + EPISODES * count
-                BEST_REWARD = total_reward + ((MAX_STEPS- steps) *-14)
+                BEST_REWARD = total_reward 
                 BEST_STEPS = steps
                 BEST_REWARD_REACHED =reward
                 PLATFORM_REACHED = state
