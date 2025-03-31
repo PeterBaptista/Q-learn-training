@@ -17,12 +17,19 @@ NUM_ACTIONS = len(ACTIONS)
 
 # Q-learning parameters
 
+# DISCOUNT_FACTOR = 0.92
+# EPSILON = 0.1
+# LEARNING_RATE = 0.1
+# EPISODES = 200
+# EPISODES_CYCLE = 100000
+# MAX_STEPS = 50
+
 DISCOUNT_FACTOR = 0.92
-EPSILON = 0.1
-LEARNING_RATE = 0.1
+EPSILON = 0
+LEARNING_RATE = 0
 EPISODES = 200
 EPISODES_CYCLE = 100000
-MAX_STEPS = 50
+MAX_STEPS = 100
 
 def binary_to_state_index(binary_state):
     """Convert binary state string to state index (0-95)"""
@@ -66,14 +73,14 @@ try:
     print(f"State: {state}, Reward: {reward}")
     while count < EPISODES_CYCLE:
         count += 1
-        EPSILON = 0.1
+        # EPSILON = 0.1
         print("\033[93mSaving Q-table to resultado.txt\033[0m")
         np.savetxt(f'resultado.txt', q_table, fmt='%.6f')
         for episode in range(EPISODES):
             print(f"\nEpisode {episode + 1 + ((count-1) * EPISODES)} cycle {count}")
 
-            LEARNING_RATE = max(0.01, 0.1 * (0.99 ** episode))
-            EPSILON = max(0.01, EPSILON - (0.1 / (EPISODES*10)))
+            # LEARNING_RATE = max(0.01, 0.1 * (0.99 ** episode))
+            # EPSILON = max(0.01, EPSILON - (0.1 / (EPISODES*10)))
             print(f"Learning rate: {LEARNING_RATE} e Epsilon: {EPSILON}")
 
             # Get initial state
@@ -151,12 +158,6 @@ try:
                 print(f"\033[92mNew best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}\033[0m")
             elif(episode % 100 == 0):
                 print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}")
-
-            while next_platform != 0:
-                print(f"RESETING...")
-                next_state, reward = cn.get_state_reward(s, 'jump')
-                next_platform = get_platform(next_state)
-                print(f"State: {next_state}, Reward: {reward}, Platform: {next_platform}")
                 
                 state = next_state
 except KeyboardInterrupt:
