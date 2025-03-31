@@ -1,3 +1,4 @@
+import platform
 import connection as cn
 import numpy as np
 import random
@@ -77,7 +78,6 @@ try:
 
             # Get initial state
 
-
             done = False
             steps = 0
             total_reward = 0
@@ -152,9 +152,11 @@ try:
             elif(episode % 100 == 0):
                 print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}")
 
-            while reward != -100:
+            while next_platform != 0:
                 print(f"RESETING...")
                 next_state, reward = cn.get_state_reward(s, 'jump')
+                next_platform = get_platform(next_state)
+                print(f"State: {next_state}, Reward: {reward}, Platform: {next_platform}")
                 
                 state = next_state
 except KeyboardInterrupt:
