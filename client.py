@@ -17,19 +17,14 @@ NUM_ACTIONS = len(ACTIONS)
 
 # Q-learning parameters
 
-# DISCOUNT_FACTOR = 0.92
-# EPSILON = 0.1
-# LEARNING_RATE = 0.1
-# EPISODES = 200
-# EPISODES_CYCLE = 100000
-# MAX_STEPS = 50
-
 DISCOUNT_FACTOR = 0.92
 EPSILON = 0
 LEARNING_RATE = 0
 EPISODES = 200
 EPISODES_CYCLE = 100000
-MAX_STEPS = 100
+MAX_STEPS = 20
+
+
 
 def binary_to_state_index(binary_state):
     """Convert binary state string to state index (0-95)"""
@@ -160,6 +155,11 @@ try:
                 print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}")
                 
                 state = next_state
+            while next_platform != 0:
+                print(f"RESETING...")
+                next_state, reward = cn.get_state_reward(s, 'jump')
+                next_platform = get_platform(next_state)
+                print(f"State: {next_state}, Reward: {reward}, Platform: {next_platform}")
 except KeyboardInterrupt:
     print("\nTraining interrupted by user")
 finally:
