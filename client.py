@@ -16,7 +16,7 @@ NUM_ACTIONS = len(ACTIONS)
 
 # Q-learning parameters
 
-DISCOUNT_FACTOR = 0.9222
+DISCOUNT_FACTOR = 0.92
 EPSILON = 0.1
 LEARNING_RATE = 0.1
 EPISODES = 200
@@ -25,9 +25,16 @@ MAX_STEPS = 20
 
 def binary_to_state_index(binary_state):
     """Convert binary state string to state index (0-95)"""
-    platform = int(binary_state[:5], 2)  # First 5 bits for platform (0-23)
-    direction = int(binary_state[5:], 2)  # Last 2 bits for direction (0-3)
+    platform = int(binary_state[:7], 2)  # First 5 bits for platform (0-23)
+    direction = int(binary_state[-2:], 2) 
+
     return platform * NUM_DIRECTIONS + direction
+
+def get_platform(binary_state):
+    return int(binary_state[:7], 2)
+
+def get_direction(binary_state):
+    return int(binary_state[-2:], 2)
 
 # Initialize Q-table (96 states × 3 actions)
 if os.path.exists(f'resultado.txt'):
@@ -74,6 +81,8 @@ try:
             total_reward = 0
 
             while not done and steps < MAX_STEPS:  # Limit steps per episode
+                current_platform = get_platform(state)
+                current_direction = get_direction(state)
                 state_idx = binary_to_state_index(state)
 
                 # Epsilon-greedy action selection
@@ -87,11 +96,22 @@ try:
                 # while next_state_idx == state_idx:
                 next_state, reward = cn.get_state_reward(s, ACTIONS[action_idx])
                 next_state_idx = binary_to_state_index(next_state)
+                next_platform = get_platform(next_state)
+                next_direction = get_direction(next_state)
+                
                 while next_state_idx == state_idx:
                     next_state, reward = cn.get_state_reward(s, ACTIONS[action_idx])
                     next_state_idx = binary_to_state_index(next_state)
+                    next_platform = get_platform(next_state)
+                    next_direction = get_direction(next_state)
 
-                
+                if(next_platform == current_platform):
+                    reward -= 6
+                elif(next_platform < current_platform or (next_platform == 13 and current_platform == 23) or (next_platform == 23 and current_platform == 13)):
+                    reward -= 10
+                elif( next_platform> current_platform ):
+                    reward += 10
+ 
                 # Q-learning update
                 old_value = q_table[state_idx, action_idx]
                 next_max = np.max(q_table[next_state_idx])
@@ -102,15 +122,15 @@ try:
                 state = next_state
                 steps += 1
 
-                print(f"Step {steps}: Action={ACTIONS[action_idx]}, State={state}, Reward={reward}")
+                print(f"Step {steps}: Action={ACTIONS[action_idx]}, State={state}, Reward={reward} platform={get_platform(state)}")
 
                 # Check if episode is done
-                if reward == -1:  # Reached goal
+                if reward > 250:  # Reached goal
                     q_table[state_idx, action_idx] = 10
                     print("Goal reached!")
                     GOAL_REACHED_COUNT += 1
                     done = True
-                elif reward == -100:  # Failed
+                elif reward < -60:  # Failed
                     print("Failed - resetting episode")
                     done = True
 
@@ -123,7 +143,7 @@ try:
                 BEST_REWARD = total_reward 
                 BEST_STEPS = steps
                 BEST_REWARD_REACHED =reward
-                PLATFORM_REACHED = state
+                PLATFORM_REACHED = get_platform(state)
                 print(f"New best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}")
             elif(episode % 100 == 0):
                 print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}")
@@ -139,7 +159,7 @@ finally:
     # Save Q-table
     print("Saving Q-table to resultado.txt")
     np.savetxt(f'resultado.txt', q_table, fmt='%.6f')
-    print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED}")
+    print(f"Best episode: {BEST_EPISODE}, Reward: {BEST_REWARD} Steps: {BEST_STEPS} Reward reached: {BEST_REWARD_REACHED} Platform reached: {PLATFORM_REACHED}")
     print(f"Goal reached count: {GOAL_REACHED_COUNT}")
     print(f"Platform reached: {PLATFORM_REACHED}")
     print("Training complete!")
