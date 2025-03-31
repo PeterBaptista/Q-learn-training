@@ -56,14 +56,13 @@ try:
     while count < EPISODES_CYCLE:
         count += 1
         EPSILON = 0.1
-        if count % 2 == 0:
-            print("Saving Q-table to resultado.txt")
-            np.savetxt(f'resultado.txt', q_table, fmt='%.6f')
+        print("Saving Q-table to resultado.txt")
+        np.savetxt(f'resultado.txt', q_table, fmt='%.6f')
         for episode in range(EPISODES):
             print(f"\nEpisode {episode + 1 + ((count-1) * EPISODES)} cycle {count}")
 
             LEARNING_RATE = max(0.01, 0.1 * (0.99 ** episode))
-            EPSILON = max(0.01, EPSILON - (0.1 / EPISODES))
+            EPSILON = max(0.01, EPSILON - (0.1 / (EPISODES*10)))
             print(f"Learning rate: {LEARNING_RATE} e Epsilon: {EPSILON}")
 
             # Get initial state
@@ -79,6 +78,7 @@ try:
 
                 # Epsilon-greedy action selection
                 if random.random() < EPSILON:
+                    print("Action: Random")
                     action_idx = random.randint(0, NUM_ACTIONS - 1)
                 else:
                     action_idx = np.argmax(q_table[state_idx])
@@ -106,7 +106,7 @@ try:
 
                 # Check if episode is done
                 if reward == -1:  # Reached goal
-                    q_table[state_idx, action_idx] = 100
+                    q_table[state_idx, action_idx] = 10
                     print("Goal reached!")
                     GOAL_REACHED_COUNT += 1
                     done = True
@@ -118,7 +118,7 @@ try:
             print(f"Episode {episode + 1} finished after {steps} steps. Total reward: {total_reward}")
             episode += 1
             print(f"Goal reached count: {GOAL_REACHED_COUNT}")
-            if (reward > BEST_REWARD_REACHED) or episode == 1:
+            if (reward > BEST_REWARD_REACHED) or BEST_REWARD_REACHED == 0:
                 BEST_EPISODE = episode + (EPISODES * (count-1))
                 BEST_REWARD = total_reward 
                 BEST_STEPS = steps
