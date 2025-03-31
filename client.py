@@ -21,7 +21,7 @@ EPSILON = 0.1
 LEARNING_RATE = 0.1
 EPISODES = 200
 EPISODES_CYCLE = 100000
-MAX_STEPS = 20
+MAX_STEPS = 50
 
 def binary_to_state_index(binary_state):
     """Convert binary state string to state index (0-95)"""
@@ -59,6 +59,7 @@ PLATFORM_REACHED = 0
 count = 0
 state=-1
 next_state_idx = -1
+steps_same_platform = 0
 try:
     while count < EPISODES_CYCLE:
         count += 1
@@ -106,12 +107,14 @@ try:
                     next_direction = get_direction(next_state)
 
                 if(next_platform == current_platform):
-                    reward -= 6
+                    steps_same_platform += 1
+                    reward -= 6 + (2 * steps_same_platform)
                 elif(next_platform < current_platform or (next_platform == 13 and current_platform == 23) or (next_platform == 23 and current_platform == 13)):
                     reward -= 10
                 elif( next_platform> current_platform ):
                     reward += 10
- 
+                    steps_same_platform = 0
+            
                 # Q-learning update
                 old_value = q_table[state_idx, action_idx]
                 next_max = np.max(q_table[next_state_idx])
@@ -126,7 +129,7 @@ try:
 
                 # Check if episode is done
                 if reward > 250:  # Reached goal
-                    q_table[state_idx, action_idx] = 10
+                    q_table[state_idx, action_idx] = reward
                     print("Goal reached!")
                     GOAL_REACHED_COUNT += 1
                     done = True
